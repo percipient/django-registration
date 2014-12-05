@@ -55,6 +55,7 @@ class RegistrationView(BaseRegistrationView):
 
     """
     SEND_ACTIVATION_EMAIL = getattr(settings, 'SEND_ACTIVATION_EMAIL', True)
+    profile_class = RegistrationProfile
 
     def register(self, request, **cleaned_data):
         """
@@ -85,7 +86,7 @@ class RegistrationView(BaseRegistrationView):
             site = Site.objects.get_current()
         else:
             site = RequestSite(request)
-        new_user = RegistrationProfile.objects.create_inactive_user(
+        new_user = self.profile_class.objects.create_inactive_user(
             username, email, password, site,
             send_email=self.SEND_ACTIVATION_EMAIL,
             request=request,
@@ -120,6 +121,7 @@ class RegistrationView(BaseRegistrationView):
 
 
 class ActivationView(BaseActivationView):
+    profile_class = RegistrationProfile
     def activate(self, request, activation_key):
         """
         Given an an activation key, look up and activate the user
@@ -131,7 +133,7 @@ class ActivationView(BaseActivationView):
         the class of this backend as the sender.
 
         """
-        activated_user = RegistrationProfile.objects.activate_user(activation_key)
+        activated_user = self.profile_class.objects.activate_user(activation_key)
         if activated_user:
             signals.user_activated.send(sender=self.__class__,
                                         user=activated_user,
